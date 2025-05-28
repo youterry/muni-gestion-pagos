@@ -3,7 +3,7 @@
 namespace App\Http\Requests;
 
 use Illuminate\Foundation\Http\FormRequest;
-use Illuminate\Validation\Rule; // <-- Importar para la regla 'Rule::in'
+use Illuminate\Validation\Rule;
 
 class StorePagoRequest extends FormRequest
 {
@@ -12,9 +12,7 @@ class StorePagoRequest extends FormRequest
      */
     public function authorize(): bool
     {
-        // Define aquí tu lógica de autorización.
-        // Por ejemplo: return auth()->check(); para requerir autenticación.
-        return true; // Dejar en true para permitir la validación por ahora.
+        return true;
     }
 
     /**
@@ -24,7 +22,8 @@ class StorePagoRequest extends FormRequest
      */
     public function rules(): array
     {
-        // Reglas base que se aplican a la creación (POST)
+        // Las reglas ahora esperan los campos directamente en el request body.
+        // Ejemplo: { "user_id": 1, "monto": 100.00, ... }
         $rules = [
             'user_id' => ['required', 'exists:users,id'],
             'monto' => ['required', 'numeric', 'min:0.01'],
@@ -32,13 +31,13 @@ class StorePagoRequest extends FormRequest
             'estado' => ['required', Rule::in(['pendiente', 'completado', 'cancelado'])],
         ];
 
-        // Aplica 'sometimes' a todas las reglas si el método es PUT o PATCH (para actualizaciones)
+        // Aplica 'sometimes' para PUT/PATCH para permitir actualizaciones parciales
         if ($this->isMethod('put') || $this->isMethod('patch')) {
             foreach ($rules as $field => $fieldRules) {
                 if (is_array($fieldRules)) {
-                    array_unshift($rules[$field], 'sometimes'); // Añade 'sometimes' al inicio del array
+                    array_unshift($rules[$field], 'sometimes');
                 } else {
-                    $rules[$field] = 'sometimes|' . $fieldRules; // Pre-añade 'sometimes|' si es un string
+                    $rules[$field] = 'sometimes|' . $fieldRules;
                 }
             }
         }
@@ -46,11 +45,7 @@ class StorePagoRequest extends FormRequest
         return $rules;
     }
 
-    /**
-     * Mensajes de error personalizados para las reglas de validación.
-     *
-     * @return array<string, string>
-     */
+    // Los mensajes personalizados también deben adaptarse a la estructura no anidada
     public function messages(): array
     {
         return [

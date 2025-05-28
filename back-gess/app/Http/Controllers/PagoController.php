@@ -80,4 +80,5 @@ class PagoController extends Controller
 
         return response()->json(['message' => 'Pago eliminado correctamente'], 200); // 200 OK
     }
+    
 }
