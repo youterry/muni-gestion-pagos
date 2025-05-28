@@ -1,27 +1,29 @@
 <?php
 
-use App\Http\Controllers\CursoController; // Suponiendo que ya tienes este controlador
-use App\Http\Controllers\PagoController; // <-- Importar tu PagoController
-use Illuminate\Foundation\Http\Middleware\HandlePrecognitiveRequests; // Si usas Livewire o precognition
+use App\Http\Controllers\CursoController;
+use App\Http\Controllers\PagoController;
+use App\Http\Controllers\PagoReportController; // <-- Importar el nuevo controlador de reportes
+use Illuminate\Foundation\Http\Middleware\HandlePrecognitiveRequests;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 
-// Ruta de usuario autenticado (típica en Laravel API)
 Route::get('/user', function (Request $request) {
     return $request->user();
 })->middleware('auth:api');
 
-// Ejemplo de rutas para Cursos (si ya las tienes)
 Route::apiResource('/cursos', CursoController::class)->middleware([HandlePrecognitiveRequests::class]);
 
-// ******* RUTAS PARA PAGOS *******
-// Define las rutas RESTful estándar (index, store, show, update, destroy) para PagoController.
+// Rutas RESTful para Pagos (CRUD)
 Route::apiResource('/pagos', PagoController::class);
 
-// Si necesitas que estas rutas de pagos estén protegidas por autenticación:
+// ******* NUEVA RUTA PARA REPORTES DE PAGOS *******
+// Esta ruta se encargará de generar los reportes
+Route::get('/pagos/reporte', [PagoReportController::class, 'generarReporte']);
+
+// Ejemplo de cómo proteger todas estas rutas con autenticación Sanctum si es necesario:
 /*
 Route::middleware('auth:sanctum')->group(function () {
     Route::apiResource('/pagos', PagoController::class);
-    // Agrega aquí otras rutas que requieran autenticación
+    Route::get('/pagos/reporte', [PagoReportController::class, 'generarReporte']);
 });
 */
