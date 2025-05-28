@@ -8,8 +8,7 @@
       <q-toolbar>
         <q-btn flat @click="drawer = !drawer" round dense icon="menu" />
         <q-toolbar-title> </q-toolbar-title>
-        <!-- <SwitchDarkMode></SwitchDarkMode> -->
-      </q-toolbar>
+        </q-toolbar>
     </q-header>
 
     <q-drawer
@@ -22,7 +21,6 @@
           : 'background: #004173; color: rgb(0, 0, 0); color: white'
       "
     >
-      <!-- drawer content -->
       <q-scroll-area style="height: calc(100% - 165px); margin-top: 165px" class="q-mx-sm">
         <q-list padding>
           <q-item
@@ -36,15 +34,7 @@
             active-class="my-menu-link"
           >
             <q-item-section side>
-              <!-- <q-icon name="lucide-LayoutDashboard " /> -->
-              <LayoutDashboard  stroke-width="1.8" size="25px" color="white" />
-              <!-- <User stroke-width="1.5" size="25px" /> -->
-              <!-- <User stroke-width="1.5" size="25px" color="white" /> -->
-
-              <!-- <q-icon name="bi-person" size="25px" color="white" /> -->
-              <!-- <q-icon name="account" class="material-icons-outlined" size="25px" /> -->
-
-              <!-- <span class="material-icons-outlined"> search </span> -->
+              <LayoutDashboard stroke-width="1.8" size="25px" color="white" />
             </q-item-section>
 
             <q-item-section>
@@ -55,7 +45,6 @@
           </q-item>
           <q-item :to="{ name: 'Curso' }" :active="link === 'Curso'" @click="link = 'Curso'" clickable v-ripple dense class="q-ma-xs rounded-borders q-pa-sm" active-class="my-menu-link" >
             <q-item-section side>
-              <!-- <q-icon name="ion-ios-settings" size="25px" color="white" /> -->
               <SquareLibrary stroke-width="1.8" size="25px" color="white" />
             </q-item-section>
 
@@ -65,7 +54,27 @@
               >
             </q-item-section>
           </q-item>
-        </q-list>
+
+          <q-item
+            :to="{ name: 'Pagos' }"
+            :active="link === 'Pagos'"
+            @click="link = 'Pagos'"
+            clickable
+            v-ripple
+            dense
+            class="q-ma-xs rounded-borders q-pa-sm"
+            active-class="my-menu-link"
+          >
+            <q-item-section side>
+              <q-icon name="mdi-credit-card" size="25px" color="white" />
+            </q-item-section>
+            <q-item-section>
+              <span :class="link === 'Pagos' ? 'text-weight-bold' : 'text-weight-medium'"
+                >Pagos</span
+              >
+            </q-item-section>
+          </q-item>
+          </q-list>
       </q-scroll-area>
       <div class="absolute-bottom q-pa-xs">
         <q-separator spaced dark />
@@ -153,11 +162,11 @@
 </template>
 
 <script setup>
-import { LayoutDashboard  } from 'lucide-vue-next'
+import { LayoutDashboard } from 'lucide-vue-next'
 import { User } from 'lucide-vue-next'
 import { SquareLibrary } from 'lucide-vue-next';
 const hover = ref(false)
-import { Megaphone } from 'lucide-vue-next';
+// REMOVED: import { Megaphone } from 'lucide-vue-next'; (No se usa en el template, causa warning si no está instalada)
 
 import { computed, onMounted, ref } from 'vue'
 // import SwitchDarkMode from 'components/SwitchDarkMode.vue'
@@ -165,7 +174,7 @@ import { useRoute } from 'vue-router'
 // import { useUserStore } from 'src/stores/user-store'
 import { useRouter } from 'vue-router'
 import { useQuasar } from 'quasar'
-import { Settings } from 'lucide-vue-next'
+import { Settings } from 'lucide-vue-next' // Esta sí se usa (para el icono de Perfil)
 
 const $q = useQuasar()
 // const userStore = useUserStore()

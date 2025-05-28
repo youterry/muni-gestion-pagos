@@ -44,7 +44,7 @@
         dense
         outlined
         v-model="valor.estado"
-        :options="['pendiente', 'pagado', 'anulado']"
+        :options="['pendiente', 'completado', 'cancelado']"
         :loading="model.validating"
         label="Estado del Pago"
         @update:model-value="model.validate(propPath + '.estado')"
@@ -62,16 +62,17 @@
       <q-input
         dense
         outlined
-        v-model="valor.ID_Usuario"
+        v-model="valor.user_id"
         :loading="model.validating"
         label="ID de Usuario"
-        type="number" @change="model.validate(propPath + '.ID_Usuario')"
-        :error="model.invalid(propPath + '.ID_Usuario')"
-        :class="model.invalid(propPath + '.ID_Usuario') ? '' : 'q-pb-none'"
+        type="number"
+        @change="model.validate(propPath + '.user_id')"
+        :error="model.invalid(propPath + '.user_id')"
+        :class="model.invalid(propPath + '.user_id') ? '' : 'q-pb-none'"
       >
         <template v-slot:prepend> <q-icon name="mdi-account" /></template>
         <template v-slot:error>
-          <div>{{ model.errors[propPath + '.ID_Usuario'] }}</div>
+          <div>{{ model.errors[propPath + '.user_id'] }}</div>
         </template>
       </q-input>
     </div>

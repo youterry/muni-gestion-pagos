@@ -1,7 +1,7 @@
 const formPago = {
   pago: {
-    ID_Pago: '',
-    ID_Usuario: null,
+    id: null,
+    user_id: null,
     monto: 0,
     fecha: null,
     estado: 'pendiente',

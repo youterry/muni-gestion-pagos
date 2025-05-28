@@ -39,7 +39,7 @@
         ref="tableRef"
         :rows="rows"
         :columns="columns"
-        row-key="ID_Pago"
+        row-key="id"
         v-model:pagination="pagination"
         :loading="loading"
         :filter="filter"
@@ -74,7 +74,12 @@
         <template v-slot:body="props">
           <q-tr :props="props">
             <q-td v-for="col in props.cols" :key="col.name" :props="props">
-              {{ col.value }}
+              <template v-if="col.format">
+                {{ col.format(col.value, props.row) }}
+              </template>
+              <template v-else>
+                {{ col.value }}
+              </template>
             </q-td>
             <q-td auto-width>
               <q-btn
@@ -82,7 +87,7 @@
                 outline
                 color="green"
                 round
-                @click="editPago(props.row.ID_Pago)"
+                @click="editPago(props.row.id)"
                 icon="edit"
                 class="q-mr-xs"
               />
@@ -91,7 +96,7 @@
                 outline
                 color="red"
                 round
-                @click="deletePago(props.row.ID_Pago)"
+                @click="deletePago(props.row.id)"
                 icon="delete"
               />
             </q-td>
@@ -105,16 +110,44 @@
 <script setup>
 import { ref, onMounted } from 'vue';
 import PagoService from 'src/services/PagoService';
-import { useQuasar } from 'quasar';
+import { useQuasar, date } from 'quasar'; // Importa 'date' utility de Quasar
 import PagosForm from './PagosForm.vue';
 
 const $q = useQuasar();
 
 const columns = [
-  { name: 'ID_Pago', label: 'ID Pago', align: 'left', field: 'ID_Pago', sortable: true },
-  { name: 'ID_Usuario', label: 'ID Usuario', align: 'left', field: 'ID_Usuario', sortable: true }, // Muestra el ID numérico
-  { name: 'monto', label: 'Monto', align: 'right', field: 'monto', format: val => `$${val ? val.toFixed(2) : '0.00'}`, sortable: true },
-  { name: 'fecha', label: 'Fecha', align: 'center', field: 'fecha', sortable: true },
+  { name: 'id', label: 'ID Pago', align: 'left', field: 'id', sortable: true },
+  { name: 'user_id', label: 'ID Usuario', align: 'left', field: 'user_id', sortable: true },
+  {
+    name: 'monto',
+    label: 'Monto',
+    align: 'right',
+    field: 'monto',
+    format: val => {
+      // Intenta siempre convertir a número. Si es null/undefined/cadena vacía, parseFloat devuelve NaN.
+      // Si la API lo envía como string, parseFloat lo maneja si tiene '.' como separador.
+      const numVal = parseFloat(val);
+      // Retorna el valor formateado o '0.00' si no es un número válido.
+      return `$${isNaN(numVal) ? '0.00' : numVal.toFixed(2)}`;
+    },
+    sortable: true
+  },
+  {
+    name: 'fecha',
+    label: 'Fecha',
+    align: 'center',
+    field: 'fecha',
+    sortable: true,
+    format: val => {
+      // Usa el date utility de Quasar para un parseo y formato más robusto.
+      // Si val es null o undefined, date.isValid retorna false.
+      if (!val || !date.isValid(val)) {
+        return 'Fecha inválida';
+      }
+      // Formatea la fecha a DD/MM/YYYY
+      return date.formatDate(val, 'DD/MM/YYYY');
+    }
+  },
   { name: 'estado', label: 'Estado', align: 'center', field: 'estado', sortable: true },
 ];
 
@@ -130,7 +163,7 @@ const filter = ref('');
 const loading = ref(false);
 
 const pagination = ref({
-  sortBy: 'ID_Pago',
+  sortBy: 'id',
   descending: false,
   page: 1,
   rowsPerPage: 9,
@@ -150,7 +183,8 @@ async function onRequest(props) {
       params: { rowsPerPage: fetchCount, page, search: filter, order_by },
     });
 
-    rows.value.splice(0, rows.value.length, ...data);
+    // Filtra filas que puedan tener 'id' undefined si la API lo devuelve mal
+    rows.value.splice(0, rows.value.length, ...data.filter(row => row.id !== undefined));
 
     pagination.value.rowsNumber = total;
     pagination.value.page = page;
@@ -178,7 +212,7 @@ onMounted(() => {
 
 const openAddForm = () => {
   title.value = 'Registrar Nuevo Pago';
-  editId.value = null;
+  editId.value = null; // No hay ID para un nuevo pago
   formPagoVisible.value = true;
   if (pagoformRef.value && pagoformRef.value.form) {
     pagoformRef.value.form.reset();
@@ -187,7 +221,7 @@ const openAddForm = () => {
 
 const onPagoSave = () => {
   formPagoVisible.value = false;
-  tableRef.value.requestServerInteraction();
+  tableRef.value.requestServerInteraction(); // Recarga la tabla
 };
 
 async function editPago(id) {
@@ -197,7 +231,13 @@ async function editPago(id) {
 
   try {
     const row = await PagoService.get(id);
-    pagoformRef.value.form.setData({ pago: row });
+    // Pre-formatea la fecha para el q-input type="date" (YYYY-MM-DD)
+    // Usamos date.formatDate para asegurar el formato correcto a partir de la cadena ISO
+    const formattedRow = {
+      ...row,
+      fecha: row.fecha ? date.formatDate(row.fecha, 'YYYY-MM-DD') : null,
+    };
+    pagoformRef.value.form.setData({ pago: formattedRow });
   } catch (error) {
     console.error('Error al cargar el pago para edición:', error);
     $q.notify({
@@ -220,7 +260,7 @@ async function deletePago(id) {
   }).onOk(async () => {
     try {
       await PagoService.delete(id);
-      tableRef.value.requestServerInteraction();
+      tableRef.value.requestServerInteraction(); // Recarga la tabla
       $q.notify({
         type: 'positive',
         message: 'Pago eliminado con éxito.',

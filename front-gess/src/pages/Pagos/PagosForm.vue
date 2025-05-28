@@ -25,9 +25,9 @@
 </template>
 
 <script setup>
-import { onMounted, ref } from 'vue';
-import ComponentePago from './ComponentePago.vue';
-import formPago from './FormPago';
+import { ref } from 'vue';
+import ComponentePago from './ComponentePago.vue'; // Asegúrate de que la ruta es correcta si lo moviste
+import formPago from './FormPago'; // Asegúrate de que la ruta es correcta
 import { useForm } from 'laravel-precognition-vue';
 import { useQuasar } from 'quasar';
 
@@ -44,8 +44,10 @@ const props = defineProps({
 
 const form = ref(null);
 if (props.id) {
+  // Si hay un ID, es una edición (PUT)
   form.value = useForm('put', `api/pagos/${props.id}`, formPago);
 } else {
+  // Si no hay ID, es una creación (POST)
   form.value = useForm('post', 'api/pagos', formPago);
 }
 
@@ -54,7 +56,7 @@ const submit = () => {
     .submit()
     .then((response) => {
       emits('save', response.data);
-      form.value.reset();
+      // form.value.reset(); // El reset lo manejamos en PagosList para consistencia
       $q.notify({
         type: 'positive',
         message: 'Pago guardado con éxito.',
@@ -65,18 +67,30 @@ const submit = () => {
     })
     .catch((error) => {
       console.error('Error al guardar el pago:', error);
+      let errorMessage = 'Error al guardar el pago. Verifica los campos.';
+      // Intenta extraer el mensaje de error de la validación de Laravel si está disponible
+      if (error.response && error.response.data && error.response.data.errors) {
+        const errors = error.response.data.errors;
+        // Concatenar todos los mensajes de error de validación
+        errorMessage += ' Detalles: ';
+        for (const field in errors) {
+          errorMessage += `${errors[field].join(', ')} `;
+        }
+      } else if (error.response?.data?.message) {
+        errorMessage += ' ' + error.response.data.message;
+      }
       $q.notify({
         type: 'negative',
-        message: 'Error al guardar el pago. ' + (error.response?.data?.message || 'Verifica los campos.'),
+        message: errorMessage,
         position: 'top-right',
         progress: true,
-        timeout: 2000,
+        timeout: 5000, // Aumenta el tiempo para leer errores de validación
       });
     });
 };
 
 defineExpose({
-  form,
+  form, // Exponer el formulario para que el componente padre (PagosList) pueda resetearlo o setear datos
 });
 </script>
 
